@@ -1,6 +1,6 @@
-# QueryBridge: Smart Assistant Using RAG
+# Real Estate Assistant Using RAG
 
-QueryBridge is a smart assistant that leverages Retrieval-Augmented Generation (RAG) to provide intelligent, source-backed answers from uploaded documents or URLs. It combines the power of LangChain, HuggingFace embeddings, FAISS vector search, and LLMs (via Groq API) with a FastAPI backend.
+Real Estate Assistant Using RAG is a smart assistant that leverages Retrieval-Augmented Generation (RAG) to provide intelligent, source-backed answers from uploaded documents or URLs. It combines the power of LangChain, HuggingFace embeddings, FAISS vector search, and LLMs (via Groq API) with a FastAPI backend.
 
 ![Screenshot](screenshot-1.png)
 
@@ -24,7 +24,7 @@ https://querybridge-smart-assistant.streamlit.app/
 ## 🗂️ Project Structure
 
 ```
-QueryBridge_Smart_Assistant_Using_RAG-main/
+Real_Estate_Assistant_Using_RAG-main/
 │
 ├── FastAPI_Server/
 │   └── server.py              # API endpoints for question-answering
@@ -45,8 +45,8 @@ QueryBridge_Smart_Assistant_Using_RAG-main/
 
 ### 1. Clone the repository
 ```bash
-gh repo clone HruthikExploiter/QueryBridge_Smart_Assistant_Using_RAG
-cd QueryBridge_Smart_Assistant_Using_RAG-main
+gh repo clone HruthikExploiter/Real_Estate_Assistant_Using_RAG
+cd Real_Estate_Assistant_Using_RAG-main
 ```
 
 ### 2. Install dependencies
