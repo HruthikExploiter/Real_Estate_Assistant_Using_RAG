@@ -7,7 +7,7 @@ Real Estate Assistant Using RAG is a smart assistant that leverages Retrieval-Au
 ---
 
 ## App link
-https://querybridge-smart-assistant.streamlit.app/
+https://real-estate-assistant-using-rag.streamlit.app/
 
 ## 🔧 Features
 
