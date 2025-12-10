@@ -5,7 +5,7 @@ from pathlib import Path
 import shutil
 from dotenv import load_dotenv
 
-from langchain.chains.retrieval_qa.base import RetrievalQAWithSourcesChain
+from langchain.chains import RetrievalQA
 from langchain_community.document_loaders import UnstructuredURLLoader, TextLoader, CSVLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
@@ -180,12 +180,29 @@ def generate_answer(query):
     if not vector_store:
         raise RuntimeError("Vector database is not initialized.")
 
-    chain = RetrievalQAWithSourcesChain.from_llm(
+    chain = RetrievalQA.from_chain_type(
         llm=llm,
-        retriever=vector_store.as_retriever()
+        retriever=vector_store.as_retriever(),
+        return_source_documents=True
     )
-    result = chain.invoke({"question": query}, return_only_outputs=True)
-    return result.get("answer", ""), result.get("sources", "")
+
+    result = chain.invoke({"query": query})
+
+    answer = result.get("result", "")
+    sources = ""
+
+    if "source_documents" in result:
+        sources = ", ".join(
+            list(
+                set(
+                    doc.metadata.get("source", "Unknown")
+                    for doc in result["source_documents"]
+                )
+            )
+        )
+
+    return answer, sources
+
 
 
 def get_answer(query: str) -> str:
