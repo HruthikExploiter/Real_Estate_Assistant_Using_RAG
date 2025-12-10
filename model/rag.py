@@ -38,7 +38,7 @@ def initialize_components():
 
     if llm is None:
         llm = ChatGroq(
-            api_key=GROQ_API_KEY,  # used in the cloud to secure our key
+            api_key=GROQ_API_KEY,
             model="llama-3.1-8b-instant",
             temperature=0.3,
             max_tokens=500
@@ -50,12 +50,19 @@ def initialize_components():
             model_kwargs={"trust_remote_code": True}
         )
 
+    # ✅ SAFE FAISS LOAD WITH AUTO-RESET ON FAILURE
     if vector_store is None and VECTORSTORE_DIR.exists() and any(VECTORSTORE_DIR.iterdir()):
-        vector_store = FAISS.load_local(
-            str(VECTORSTORE_DIR),
-            embeddings,
-            allow_dangerous_deserialization=True
-        )
+        try:
+            vector_store = FAISS.load_local(
+                str(VECTORSTORE_DIR),
+                embeddings,
+                allow_dangerous_deserialization=True
+            )
+        except Exception as e:
+            print("⚠️ Corrupted FAISS store detected. Rebuilding...", e)
+            shutil.rmtree(VECTORSTORE_DIR, ignore_errors=True)
+            VECTORSTORE_DIR.mkdir(parents=True, exist_ok=True)
+            vector_store = None
 
 
 def reset_vector_store():
