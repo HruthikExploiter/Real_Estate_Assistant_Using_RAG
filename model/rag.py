@@ -92,13 +92,18 @@ def process_urls(urls):
 
     yield "📥 Loading data from URLs..."
     loader = UnstructuredURLLoader(
-    urls=urls,
-    timeout=30,
-    headers={
-        "User-Agent": "Mozilla/5.0"
-    })
+        urls=urls,
+        timeout=30,
+        headers={
+            "User-Agent": "Mozilla/5.0"
+        }
+    )
 
     data = loader.load()
+
+    # ✅ FORCE SOURCE METADATA INTO EACH DOCUMENT (URL)
+    for i, doc in enumerate(data):
+        doc.metadata["source"] = urls[i % len(urls)]
 
     yield "✂️ Splitting text into chunks..."
     text_splitter = RecursiveCharacterTextSplitter(
@@ -132,7 +137,13 @@ def process_txt_files(file_paths):
     for path in file_paths:
         if Path(path).suffix == ".txt":
             loader = TextLoader(str(path), encoding="utf-8")
-            documents.extend(loader.load())
+            loaded_docs = loader.load()
+
+            # ✅ ADD TXT SOURCE
+            for doc in loaded_docs:
+                doc.metadata["source"] = Path(path).name
+
+            documents.extend(loaded_docs)
         else:
             yield f"⚠️ Skipping unsupported file: {path}"
 
@@ -172,7 +183,14 @@ def process_csv_files(file_paths):
                 encoding="utf-8",
                 csv_args={"delimiter": ","}
             )
-            documents.extend(loader.load())
+
+            loaded_docs = loader.load()
+
+            # ✅ ADD CSV SOURCE
+            for doc in loaded_docs:
+                doc.metadata["source"] = Path(path).name
+
+            documents.extend(loaded_docs)
         else:
             yield f"⚠️ Skipping unsupported file: {path}"
 
