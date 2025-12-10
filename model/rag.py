@@ -6,6 +6,7 @@ import shutil
 from dotenv import load_dotenv
 
 from langchain.chains import RetrievalQAWithSourcesChain
+from langchain.prompts import PromptTemplate
 from langchain_community.document_loaders import UnstructuredURLLoader, TextLoader, CSVLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
@@ -201,12 +202,32 @@ def generate_answer(query):
     if not vector_store:
         raise RuntimeError("Vector database is not initialized.")
 
-    chain = RetrievalQAWithSourcesChain.from_llm(
-        llm=llm,
-        retriever=vector_store.as_retriever()
+    prompt = PromptTemplate(
+        template="""
+You are a knowledgeable assistant. Use ONLY the context below to answer the user's question.
+If the context is sufficient, give a clear and complete answer.
+Do NOT say "the text does not contain".
+Do NOT hedge unless the answer is truly missing.
+
+Context:
+{context}
+
+Question:
+{question}
+
+Answer:
+""",
+        input_variables=["context", "question"]
     )
 
-    result = chain.invoke({"question": query}, return_only_outputs=True)
+    chain = RetrievalQAWithSourcesChain.from_llm(
+        llm=llm,
+        retriever=vector_store.as_retriever(),
+        chain_type_kwargs={"prompt": prompt}
+    )
+
+    result = chain.invoke({"query": query})
+
     return result.get("answer", ""), result.get("sources", "")
 
 
