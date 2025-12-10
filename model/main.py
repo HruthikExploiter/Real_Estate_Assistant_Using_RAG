@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from rag import process_urls, process_txt_files, process_csv_files, generate_answer, reset_vector_store
 
-st.set_page_config(page_title="QueryBridge", layout="wide")
+st.set_page_config(page_title="Real Estate Assistant", layout="wide")
 
 # Custom Title
 st.markdown(
