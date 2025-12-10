@@ -202,28 +202,37 @@ def generate_answer(query):
     if not vector_store:
         raise RuntimeError("Vector database is not initialized.")
 
-    prompt = PromptTemplate(
-        template="""
-You are a knowledgeable assistant. Use ONLY the context below to answer the user's question.
-If the context is sufficient, give a clear and complete answer.
-Do NOT say "the text does not contain".
-Do NOT hedge unless the answer is truly missing.
+    from langchain.prompts import PromptTemplate
 
-Context:
-{context}
+    question_prompt = PromptTemplate(
+        input_variables=["question"],
+        template="""
+You are a knowledgeable assistant. Use the retrieved context to answer the question clearly.
+Do not say you are missing information unless it is truly absent.
 
 Question:
 {question}
 
 Answer:
-""",
-        input_variables=["context", "question"]
+"""
+    )
+
+    combine_prompt = PromptTemplate(
+        input_variables=["summaries"],
+        template="""
+Combine the following information into a clear, well-structured final answer.
+
+{summaries}
+
+Final Answer:
+"""
     )
 
     chain = RetrievalQAWithSourcesChain.from_llm(
         llm=llm,
         retriever=vector_store.as_retriever(),
-        chain_type_kwargs={"prompt": prompt}
+        question_prompt=question_prompt,
+        combine_prompt=combine_prompt
     )
 
     result = chain.invoke({"query": query})
