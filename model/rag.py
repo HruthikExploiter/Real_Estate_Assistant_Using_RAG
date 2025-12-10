@@ -5,8 +5,7 @@ from pathlib import Path
 import shutil
 from dotenv import load_dotenv
 
-from langchain.chains import ConversationalRetrievalChain
-from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import RetrievalQAWithSourcesChain
 from langchain_community.document_loaders import UnstructuredURLLoader, TextLoader, CSVLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
@@ -16,8 +15,8 @@ from langchain_groq import ChatGroq
 # Get API key from Streamlit secrets
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
-# for locall purpose
-#load_dotenv()
+# for local purpose
+# load_dotenv()
 
 # Constants
 CHUNK_SIZE = 1000
@@ -39,7 +38,7 @@ def initialize_components():
 
     if llm is None:
         llm = ChatGroq(
-            api_key=GROQ_API_KEY,  #it is used in the cloud to secure our key
+            api_key=GROQ_API_KEY,  # used in the cloud to secure our key
             model="llama3-70b-8192",
             temperature=0.9,
             max_tokens=500
@@ -52,7 +51,11 @@ def initialize_components():
         )
 
     if vector_store is None and VECTORSTORE_DIR.exists() and any(VECTORSTORE_DIR.iterdir()):
-        vector_store = FAISS.load_local(str(VECTORSTORE_DIR), embeddings, allow_dangerous_deserialization=True)
+        vector_store = FAISS.load_local(
+            str(VECTORSTORE_DIR),
+            embeddings,
+            allow_dangerous_deserialization=True
+        )
 
 
 def reset_vector_store():
@@ -150,7 +153,11 @@ def process_csv_files(file_paths):
     documents = []
     for path in file_paths:
         if Path(path).suffix == ".csv":
-            loader = CSVLoader(file_path=str(path), encoding="utf-8", csv_args={"delimiter": ","})
+            loader = CSVLoader(
+                file_path=str(path),
+                encoding="utf-8",
+                csv_args={"delimiter": ","}
+            )
             documents.extend(loader.load())
         else:
             yield f"⚠️ Skipping unsupported file: {path}"
@@ -181,29 +188,13 @@ def generate_answer(query):
     if not vector_store:
         raise RuntimeError("Vector database is not initialized.")
 
-    chain = ConversationalRetrievalChain.from_llm(
+    chain = RetrievalQAWithSourcesChain.from_llm(
         llm=llm,
-        retriever=vector_store.as_retriever(),
-        return_source_documents=True
+        retriever=vector_store.as_retriever()
     )
 
-    result = chain.invoke({"question": query, "chat_history": []})
-
-    answer = result.get("answer", "")
-    sources = ""
-
-    if "source_documents" in result:
-        sources = ", ".join(
-            list(
-                set(
-                    doc.metadata.get("source", "Unknown")
-                    for doc in result["source_documents"]
-                )
-            )
-        )
-
-    return answer, sources
-
+    result = chain.invoke({"question": query}, return_only_outputs=True)
+    return result.get("answer", ""), result.get("sources", "")
 
 
 def get_answer(query: str) -> str:
