@@ -90,7 +90,13 @@ def process_urls(urls):
     initialize_components()
 
     yield "📥 Loading data from URLs..."
-    loader = UnstructuredURLLoader(urls=urls)
+    loader = UnstructuredURLLoader(
+    urls=urls,
+    timeout=30,
+    headers={
+        "User-Agent": "Mozilla/5.0"
+    })
+
     data = loader.load()
 
     yield "✂️ Splitting text into chunks..."
