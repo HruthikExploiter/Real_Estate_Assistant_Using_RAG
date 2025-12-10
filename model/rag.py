@@ -207,8 +207,8 @@ def generate_answer(query):
         retriever=vector_store.as_retriever(search_kwargs={"k": 5})
     )
 
-    # ✅ IMPORTANT: use 'query' key, NOT 'question'
-    result = chain.invoke({"query": query})
+    # ✅ For YOUR LangChain version, this must be "question"
+    result = chain.invoke({"question": query})
 
     answer = result.get("answer", "")
     sources = result.get("sources", "")
