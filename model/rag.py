@@ -5,7 +5,7 @@ from pathlib import Path
 import shutil
 from dotenv import load_dotenv
 
-from langchain.chains import RetrievalQAWithSourcesChain
+from langchain.chains.retrieval_qa.base import RetrievalQAWithSourcesChain
 from langchain_community.document_loaders import UnstructuredURLLoader, TextLoader, CSVLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
