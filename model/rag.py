@@ -5,7 +5,7 @@ from pathlib import Path
 import shutil
 from dotenv import load_dotenv
 
-from langchain.chains import create_retrieval_chain
+from langchain.chains import ConversationalRetrievalChain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_community.document_loaders import UnstructuredURLLoader, TextLoader, CSVLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -181,26 +181,23 @@ def generate_answer(query):
     if not vector_store:
         raise RuntimeError("Vector database is not initialized.")
 
-    retriever = vector_store.as_retriever()
-
-    document_chain = create_stuff_documents_chain(llm)
-
-    retrieval_chain = create_retrieval_chain(
-        retriever=retriever,
-        combine_docs_chain=document_chain
+    chain = ConversationalRetrievalChain.from_llm(
+        llm=llm,
+        retriever=vector_store.as_retriever(),
+        return_source_documents=True
     )
 
-    result = retrieval_chain.invoke({"input": query})
+    result = chain.invoke({"question": query, "chat_history": []})
 
     answer = result.get("answer", "")
     sources = ""
 
-    if "context" in result:
+    if "source_documents" in result:
         sources = ", ".join(
             list(
                 set(
                     doc.metadata.get("source", "Unknown")
-                    for doc in result["context"]
+                    for doc in result["source_documents"]
                 )
             )
         )
